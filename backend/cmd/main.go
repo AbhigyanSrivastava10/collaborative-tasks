@@ -13,6 +13,7 @@ import (
 
 	"github.com/abhigyansrivastava10/collaborative-tasks/backend/config"
 	"github.com/abhigyansrivastava10/collaborative-tasks/backend/db"
+	"github.com/abhigyansrivastava10/collaborative-tasks/backend/internal/auth"
 )
 
 func main() {
@@ -35,6 +36,10 @@ func main() {
 	fmt.Println("✅ Connected to Redis")
 	defer redisClient.Close()
 
+	// Set up services and handlers
+	authService := auth.NewService(pool, cfg.JWTSecret)
+	authHandler := auth.NewHandler(authService)
+
 	// Set up router
 	r := chi.NewRouter()
 
@@ -54,10 +59,29 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	// Auth routes
+	r.Post("/api/auth/register", authHandler.Register)
+	r.Post("/api/auth/login", authHandler.Login)
+
+	// Protected routes (we'll add more here in future commits)
+	r.Group(func(r chi.Router) {
+		r.Use(authService.Middleware)
+		r.Get("/api/me", func(w http.ResponseWriter, r *http.Request) {
+			userID := r.Context().Value(auth.UserIDKey)
+			respondJSON(w, http.StatusOK, map[string]any{"user_id": userID})
+		})
+	})
+
 	// Start server
 	addr := ":" + cfg.Port
 	fmt.Printf("🚀 Server running on http://localhost%s\n", addr)
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatalf("Server error: %v\n", err)
 	}
+}
+
+func respondJSON(w http.ResponseWriter, status int, data any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	fmt.Fprintf(w, "%v", data)
 }
