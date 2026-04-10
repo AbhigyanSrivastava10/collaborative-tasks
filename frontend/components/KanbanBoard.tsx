@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import api from "@/lib/api";
+import { useWebSocket } from "@/hooks/useWebSocket";
+
 
 const COLUMNS = [
   { id: "todo", label: "To Do" },
@@ -17,6 +19,7 @@ const COLUMNS = [
 
 export default function KanbanBoard({ boardID, initialTasks }: { boardID: string; initialTasks: Task[] }) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  useWebSocket(boardID);
   const [newTaskTitle, setNewTaskTitle] = useState<Record<string, string>>({});
   const [adding, setAdding] = useState<Record<string, boolean>>({});
 

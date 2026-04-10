@@ -7,6 +7,7 @@ import { Board, Task } from "@/types";
 import KanbanBoard from "@/components/KanbanBoard";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function BoardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -26,6 +27,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
       return res.data;
     },
   });
+  useWebSocket(id);
 
   if (boardLoading || tasksLoading) {
     return <p className="text-slate-500">Loading board...</p>;
