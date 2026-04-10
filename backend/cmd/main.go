@@ -16,6 +16,7 @@ import (
 	"github.com/abhigyansrivastava10/collaborative-tasks/backend/internal/auth"
 	"github.com/abhigyansrivastava10/collaborative-tasks/backend/internal/board"
 	"github.com/abhigyansrivastava10/collaborative-tasks/backend/internal/task"
+	"github.com/abhigyansrivastava10/collaborative-tasks/backend/internal/ws"
 )
 
 func main() {
@@ -40,10 +41,15 @@ func main() {
 	boardService := board.NewService(pool)
 	taskService := task.NewService(pool)
 
+	// WebSocket hub
+	hub := ws.NewHub(redisClient)
+	go hub.Run(context.Background())
+
 	// Handlers
 	authHandler := auth.NewHandler(authService)
 	boardHandler := board.NewHandler(boardService)
 	taskHandler := task.NewHandler(taskService)
+	wsHandler := ws.NewHandler(hub)
 
 	// Router
 	r := chi.NewRouter()
@@ -75,11 +81,14 @@ func main() {
 		r.Put("/api/boards/{id}", boardHandler.Update)
 		r.Delete("/api/boards/{id}", boardHandler.Delete)
 
-		// Tasks (nested under boards)
+		// Tasks
 		r.Get("/api/boards/{boardID}/tasks", taskHandler.GetByBoard)
 		r.Post("/api/boards/{boardID}/tasks", taskHandler.Create)
 		r.Put("/api/boards/{boardID}/tasks/{taskID}", taskHandler.Update)
 		r.Delete("/api/boards/{boardID}/tasks/{taskID}", taskHandler.Delete)
+
+		// WebSocket
+		r.Get("/ws/boards/{boardID}", wsHandler.ServeWS)
 	})
 
 	addr := ":" + cfg.Port
@@ -88,4 +97,3 @@ func main() {
 		log.Fatalf("Server error: %v\n", err)
 	}
 }
-
