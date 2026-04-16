@@ -7,7 +7,7 @@ type User struct {
 	Email     string    `json:"email"`
 	Password  string    `json:"-"` // never send password in JSON response
 	Name      string    `json:"name"`
-	AvatarURL string    `json:"avatar_url"`
+	AvatarURL *string    `json:"avatar_url"`
 	Provider  string    `json:"provider"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

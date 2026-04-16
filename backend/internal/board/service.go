@@ -59,7 +59,7 @@ func (s *Service) GetAll(ctx context.Context, userID string) ([]models.Board, er
 	}
 	defer rows.Close()
 
-	var boards []models.Board
+	boards := []models.Board{}
 	for rows.Next() {
 		var b models.Board
 		if err := rows.Scan(&b.ID, &b.Name, &b.Description, &b.OwnerID, &b.CreatedAt, &b.UpdatedAt); err != nil {
