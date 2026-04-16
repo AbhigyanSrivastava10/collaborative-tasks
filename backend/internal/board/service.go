@@ -112,3 +112,4 @@ func (s *Service) Delete(ctx context.Context, boardID, userID string) error {
 	}
 	return nil
 }
+
